@@ -10,9 +10,12 @@ console.log("Loaded Gemini API Key:", process.env.GEMINI_API_KEY ? "✅ Loaded" 
 
 const app = express();
 
-// Enable CORS
+// Enable CORS for both localhost (dev) & deployed frontend
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',         // local dev
+    'https://ats-scoring.vercel.app' // deployed frontend
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 }));
@@ -27,11 +30,15 @@ const documentRoutes = require('./routes/documents');
 const jobRoutes = require('./routes/job');
 const jobDescriptionRoutes = require("./routes/jobDescription");
 
-app.use("/api/jobdescription", require('./routes/jobDescription'));
-app.use('/api/resume', require('./routes/resume'));   // Resume upload + process
-app.use('/api/job', require('./routes/job'));         // Job description upload/text
-app.use('/api/documents', require('./routes/documents')); // Matching
+app.use("/api/jobdescription", jobDescriptionRoutes);
+app.use('/api/resume', resumeRoutes);
+app.use('/api/job', jobRoutes);
+app.use('/api/documents', documentRoutes);
 
+// Root route (just to test Render deployment)
+app.get("/", (req, res) => {
+  res.send("✅ ATS Backend is running...");
+});
 
 // Start the server
 const PORT = process.env.PORT || 5001;
